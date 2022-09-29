@@ -36,6 +36,9 @@ Modal.propTypes = {
   onClose: PropTypes.func,
   closeModal: PropTypes.func,
   children: PropTypes.node,
+  target: PropTypes.string,
+  currentTarget: PropTypes.string,
+  code: PropTypes.string,
 }
 
 export default Modal;
