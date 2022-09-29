@@ -3,12 +3,11 @@ import ImageGalleryItem from "components/ImageGalleryItem/ImageGalleryItem";
 import { ImageGalleryList } from './ImageGalleryStyled';
 
 
-const ImageGallery =({ items, onClick }) => {
+const ImageGallery =({ items }) => {
     return (
         <ImageGalleryList>
             <ImageGalleryItem 
               items={items}
-              onClick={onClick}
             />
         </ImageGalleryList>
     )  
@@ -16,7 +15,6 @@ const ImageGallery =({ items, onClick }) => {
 
 ImageGallery.propTypes = {
     items: PropTypes.array.isRequired,
-    onClick: PropTypes.func.isRequired,
 }
 
 export default ImageGallery;
