@@ -7,3 +7,9 @@ export const ContainerApp = styled.div`
   padding-bottom: 24px;
 
 `
+
+export const Error = styled.p`
+font-size: 36px;
+font-weight: 500;
+text-align: center;
+`
