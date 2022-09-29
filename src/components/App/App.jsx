@@ -1,126 +1,89 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 
 import api from '../../services/getSearchImages';
 import Searchbar from '../Searchbar/Searchbar';
 import ImageGallery from '../ImageGallery/ImageGallery';
 import Button from '../Button/Button';
-import Modal from 'components/Modal/Modal';
 import Loader from 'components/Loader/Loader';
 
-import { ToastContainer, toast } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ContainerApp } from './AppStyled';
 
+import { ContainerApp, Error } from './AppStyled';
 
-class App extends Component {
-  state = {
-    items: [],
-    searchQuery: '',
-    currentPage: 1,
-    isLoading: false,
-    error: null,
-    openModal: false,
-    modalImg: {
-        largeImageURL: '',
-        tags: ''
-      }
-  }
+const App = () => {
 
-  componentDidUpdate(_, prevState) {
-    if (prevState.searchQuery !== this.state.searchQuery) {
-      this.GetSearchImages()
-    }
+  const [items, setItems] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-    else if(prevState.items !== this.state.items && this.state.items.length === 0) {
-      toast.error('Sorry, there are no images matching your search query. Please try again.');
-      return this.state.items === []; 
-    }
-  }
-
-  onChangeQuery = query => {
-    this.setState({
-      searchQuery: query,
-      currentPage: 1,
-      items: [],
-    });
+  const onChangeQuery = query => {
+    setSearchQuery(query);
+    setCurrentPage(1);
+    setItems([])
   };
 
-
-  GetSearchImages = async () => {
-    const { currentPage, searchQuery } = this.state;
-    const options = { searchQuery, currentPage };
+  useEffect(() => {
+  
+    const GetSearchImages = async () => {
+      const options = { searchQuery: searchQuery, currentPage };
+      if(!searchQuery) {
+        return;
+      }      
 
       try {
-        this.setState({ isLoading: true });
+        setIsLoading(true);
+        const data = await api.getSearchImages(options);
 
-        const items = await api.getSearchImages(options);
-
-        this.setState(prevState => ({
-        items: [...prevState.items, ...items],
-        currentPage: prevState.currentPage + 1,
-        }));
-      } 
-      catch (error) {
-        this.setState({ error });
-      } 
-      finally {
-        this.setState({ isLoading: false });
+        setItems((prevItems) => {
+          return [...prevItems, ...data]
+        })
+        } 
+        catch (error) {
+          setError(error);
+        } 
+        finally {
+          setIsLoading(false);
       }
+    }
+
+    GetSearchImages();
+
+  }, [currentPage, searchQuery])
+
+  const loadMore =() => {
+    setCurrentPage((prevPage) => prevPage + 1)
   }
 
-  isOpenModal = (modalImg) => {
-    this.setState({
-      openModal: true,
-      modalImg
-    })
-  }
-
-  isCloseModal = () => {
-    this.setState({
-      openModal: false,
-      modalImg: {
-        largeImageURL: '',
-        tags: ''
-      }
-    })
-  }
-
-  render() {
-    const {items, isLoading, openModal, modalImg } = this.state;
-    const {onChangeQuery, GetSearchImages, isCloseModal, isOpenModal} = this;
-
-    return (
-      <ContainerApp>
-        <Searchbar 
-          onSubmit={onChangeQuery}
-        />
+  return (
+    <ContainerApp>
+      <Searchbar 
+        onSubmit={onChangeQuery}
+      />
 
       <ImageGallery
        items={items}
-       onClick={isOpenModal} 
       />
 
-        {items.length > 0 && 
-          <Button 
-            onClick={GetSearchImages}
-          />
-        }
-
-        {isLoading && <Loader/>}
-        
-        {openModal && <Modal onClose={isCloseModal}>
-          <img src={modalImg.largeImageURL} alt={modalImg.tags} />
-        </Modal>
-        }
-
-        <ToastContainer 
-          autoClose={3000} 
-          theme={'colored'}
+      {items.length > 0 && 
+        <Button 
+          onClick={loadMore}
         />
+      }
+
+      {isLoading && <Loader/>}
+
+      {error && <Error>Please try again later!</Error>}
+
+      <ToastContainer 
+        autoClose={3000} 
+        theme={'colored'}
+      />
 
       </ContainerApp>
-    );
-  }
-};
+  );
+}
 
 export default App;
